@@ -1,3 +1,4 @@
-syncSysTray.spec
 dist/
 build/
+
+/syncSysTray.spec
