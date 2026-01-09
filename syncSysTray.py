@@ -373,6 +373,12 @@ class SyncApp:
             config["LOCAL_FOLDER"] = local_var.get()
             config["EXPECTED_VOLUME_NAME"] = volume_var.get()
             save_config(config)
+            # Update global variables to apply changes immediately
+            global USB_DRIVE, USB_MUSIC, LOCAL_MUSIC, EXPECTED_VOLUME_NAME
+            USB_DRIVE = Path(config["USB_DRIVE"] + "/")
+            USB_MUSIC = Path(config["REMOTE_FOLDER"])
+            LOCAL_MUSIC = Path(config["LOCAL_FOLDER"])
+            EXPECTED_VOLUME_NAME = config["EXPECTED_VOLUME_NAME"]
             show_custom_message(setup_win, "Saved", "Settings updated successfully.")
             setup_win.destroy()
 
