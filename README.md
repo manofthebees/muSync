@@ -91,9 +91,6 @@ A small Windows tray application that syncs music from a local folder to a USB d
 - `tkinter` is included with standard Windows Python installers; if missing, install a Python distribution that includes it.
 - When testing eject behavior, run the app as Administrator if you have permission issues with device control.
 
-**Optional: Create an installer**
-- Use Inno Setup or similar tools to wrap `dist\syncSysTray.exe` into an installer and to add shortcuts/startup entries.
-
 **Files**
 - `syncSysTray.py`: Main application script.
 - `requirements.txt`: Python dependencies (install with `pip install -r requirements.txt`).
@@ -103,8 +100,3 @@ A small Windows tray application that syncs music from a local folder to a USB d
 See the `LICENSE` file in this repository.
 
 ---
-
-If you want, I can also:
-- Build the exe locally for you (requires running PyInstaller here).
-- Add a sample `config.json` template and an `app.ico` example.
-
