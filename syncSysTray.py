@@ -131,6 +131,44 @@ def set_modern_style():
     style.configure("TScrollbar", background="#444")
     # ensure any explicit widget bg for scrolledtext uses same scheme elsewhere
 
+def show_custom_message(parent, title, message, msg_type="info"):
+    set_modern_style()
+    popup = tk.Toplevel(parent)
+    popup.title(title)
+    popup.resizable(False, False)
+    popup.configure(bg=DARK_BG)
+    popup.grab_set()
+    popup.attributes("-topmost", True)
+
+    frm = ttk.Frame(popup, padding=20, style="Card.TFrame")
+    frm.pack(fill="both", expand=True)
+    ttk.Label(frm, text=message, style="Field.TLabel").pack(pady=10)
+
+    response = tk.BooleanVar()
+    if msg_type == "yesno":
+        btn_frame = ttk.Frame(frm, style="Card.TFrame")
+        btn_frame.pack(pady=10)
+        def yes(): response.set(True); popup.destroy()
+        def no(): response.set(False); popup.destroy()
+        ttk.Button(btn_frame, text="Yes", command=yes, style="Accent.TButton").pack(side="left", padx=10)
+        ttk.Button(btn_frame, text="No", command=no, style="Secondary.TButton").pack(side="right", padx=10)
+    else:
+        def ok(): popup.destroy()
+        ttk.Button(frm, text="OK", command=ok, style="Accent.TButton").pack(pady=10)
+
+    popup.update_idletasks()
+    min_width = 400
+    min_height = 150
+    width = max(popup.winfo_width(), min_width)
+    height = max(popup.winfo_height(), min_height)
+    center_window(popup, width, height)
+
+    if msg_type == "yesno":
+        popup.wait_window()
+        return response.get()
+    else:
+        popup.wait_window()
+
 def first_launch_setup(root):
     set_modern_style()
     config = {}
@@ -146,11 +184,11 @@ def first_launch_setup(root):
     ttk.Label(frame, text="USB Music Sync - First-Time Setup", style="Header.TLabel", anchor="center").pack(pady=(0, 18), fill="x")
 
     # Drive Letter
-    ttk.Label(frame, text="USB Drive Letter:", style="Field.TLabel").pack(pady=(0,5), anchor="w")
+    ttk.Label(frame, text="USB Drive Letter:", style="Field.TLabel", anchor="center").pack(pady=(0,5), fill="x")
     drives = [f"{d}:" for d in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(f"{d}:\\")]
     drive_var = tk.StringVar(value=drives[0] if drives else "")
     drive_menu = ttk.OptionMenu(frame, drive_var, drive_var.get(), *drives)
-    drive_menu.pack(anchor="w", pady=(0,10), fill="x")
+    drive_menu.pack(anchor="center", pady=(0,10), fill="x")
     drive_menu.configure(style="TMenubutton")
     # Make the underlying tk.Menu dark as well (prevents white menu/hover)
     try:
@@ -158,42 +196,42 @@ def first_launch_setup(root):
         m.config(bg=ENTRY_BG, fg=DARK_FG, activebackground=SECONDARY_BG, activeforeground=DARK_FG, tearoff=0)
     except Exception:
         pass
-    ttk.Button(frame, text="Refresh Drive Letters", command=lambda: refresh_drives(drive_var, drive_menu), style="Secondary.TButton").pack(anchor="w", pady=(0,15))
+    ttk.Button(frame, text="Refresh Drive Letters", command=lambda: refresh_drives(drive_var, drive_menu), style="Secondary.TButton").pack(anchor="center", pady=(0,15))
 
     # Volume Name
-    ttk.Label(frame, text="Expected USB Volume Name:", style="Field.TLabel").pack(pady=(0,5), anchor="w")
+    ttk.Label(frame, text="Expected USB Volume Name:", style="Field.TLabel", anchor="center").pack(pady=(0,5), fill="x")
     volume_var = tk.StringVar(value="IPOD")
     entry1 = ttk.Entry(frame, textvariable=volume_var)
-    entry1.pack(anchor="w", fill="x", pady=(0,15))
+    entry1.pack(anchor="center", fill="x", pady=(0,15))
 
     # Remote Folder
-    ttk.Label(frame, text="Remote Folder on USB:", style="Field.TLabel").pack(pady=(0,5), anchor="w")
+    ttk.Label(frame, text="Remote Folder on USB:", style="Field.TLabel", anchor="center").pack(pady=(0,5), fill="x")
     remote_var = tk.StringVar()
-    remote_label = ttk.Label(frame, text="", style="Path.TLabel")
-    remote_label.pack(anchor="w")
+    remote_label = ttk.Label(frame, text="", style="Path.TLabel", anchor="center")
+    remote_label.pack(anchor="center", fill="x")
     def choose_remote():
         path = filedialog.askdirectory(title="Select Remote Folder on USB")
         if path:
             remote_var.set(path)
             remote_label.config(text=path)
-    ttk.Button(frame, text="Browse...", command=choose_remote, style="Secondary.TButton").pack(anchor="w", pady=(0,15))
+    ttk.Button(frame, text="Browse...", command=choose_remote, style="Secondary.TButton").pack(anchor="center", pady=(0,15))
 
     # Local Folder
-    ttk.Label(frame, text="Local Music Folder:", style="Field.TLabel").pack(pady=(0,5), anchor="w")
+    ttk.Label(frame, text="Local Music Folder:", style="Field.TLabel", anchor="center").pack(pady=(0,5), fill="x")
     local_var = tk.StringVar()
-    local_label = ttk.Label(frame, text="", style="Path.TLabel")
-    local_label.pack(anchor="w")
+    local_label = ttk.Label(frame, text="", style="Path.TLabel", anchor="center")
+    local_label.pack(anchor="center", fill="x")
     def choose_local():
         path = filedialog.askdirectory(title="Select Local Music Folder")
         if path:
             local_var.set(path)
             local_label.config(text=path)
-    ttk.Button(frame, text="Browse...", command=choose_local, style="Secondary.TButton").pack(anchor="w", pady=(0,15))
+    ttk.Button(frame, text="Browse...", command=choose_local, style="Secondary.TButton").pack(anchor="center", pady=(0,15))
 
     # Save Button
     def save_setup():
         if not drive_var.get() or not remote_var.get() or not local_var.get() or not volume_var.get():
-            messagebox.showwarning("Incomplete","Please select all settings.", parent=setup_win)
+            show_custom_message(setup_win, "Incomplete", "Please select all settings.")
             return
         config["USB_DRIVE"] = drive_var.get()
         config["REMOTE_FOLDER"] = remote_var.get()
@@ -201,7 +239,7 @@ def first_launch_setup(root):
         config["EXPECTED_VOLUME_NAME"] = volume_var.get()
         save_config(config)
         setup_win.destroy()
-        messagebox.showinfo("Setup Complete","Settings saved successfully.", parent=root)
+        show_custom_message(root, "Setup Complete", "Settings saved successfully.")
 
     ttk.Button(frame, text="Save Settings", command=save_setup, style="Accent.TButton").pack(pady=18, ipadx=10, ipady=2)
     setup_win.update_idletasks()
@@ -255,7 +293,7 @@ class SyncApp:
         if self.drive_present and not self.sync_running:
             self.start_sync()
         elif not self.drive_present:
-            messagebox.showwarning("No Device Detected", "No device detected.", parent=self.root)
+            show_custom_message(self.root, "No Device Detected", "No device detected.")
 
     def usb_watcher(self):
         while not self.shutdown_requested:
@@ -288,11 +326,11 @@ class SyncApp:
 
         ttk.Label(frame, text="USB Music Sync - Settings", style="Header.TLabel", anchor="center").pack(pady=(0, 18), fill="x")
 
-        ttk.Label(frame, text="USB Drive Letter:", style="Field.TLabel").pack(pady=(0,5), anchor="w")
+        ttk.Label(frame, text="USB Drive Letter:", style="Field.TLabel", anchor="center").pack(pady=(0,5), fill="x")
         drives = [f"{d}:" for d in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(f"{d}:\\")]
         drive_var = tk.StringVar(value=config.get("USB_DRIVE", drives[0] if drives else ""))
         drive_menu = ttk.OptionMenu(frame, drive_var, drive_var.get(), *drives)
-        drive_menu.pack(anchor="w", pady=(0,10), fill="x")
+        drive_menu.pack(anchor="center", pady=(0,10), fill="x")
         drive_menu.configure(style="TMenubutton")
         # ensure menu for this OptionMenu also uses dark colors
         try:
@@ -300,34 +338,34 @@ class SyncApp:
             dm.config(bg=ENTRY_BG, fg=DARK_FG, activebackground=SECONDARY_BG, activeforeground=DARK_FG, tearoff=0)
         except Exception:
             pass
-        ttk.Button(frame, text="Refresh Drive Letters", command=lambda: refresh_drives(drive_var, drive_menu), style="Secondary.TButton").pack(anchor="w", pady=(0,15))
+        ttk.Button(frame, text="Refresh Drive Letters", command=lambda: refresh_drives(drive_var, drive_menu), style="Secondary.TButton").pack(anchor="center", pady=(0,15))
 
-        ttk.Label(frame, text="Expected USB Volume Name:", style="Field.TLabel").pack(pady=(0,5), anchor="w")
+        ttk.Label(frame, text="Expected USB Volume Name:", style="Field.TLabel", anchor="center").pack(pady=(0,5), fill="x")
         volume_var = tk.StringVar(value=config.get("EXPECTED_VOLUME_NAME","IPOD"))
         entry2 = ttk.Entry(frame, textvariable=volume_var)
-        entry2.pack(anchor="w", fill="x", pady=(0,15))
+        entry2.pack(anchor="center", fill="x", pady=(0,15))
 
-        ttk.Label(frame, text="Remote Folder on USB:", style="Field.TLabel").pack(pady=(0,5), anchor="w")
+        ttk.Label(frame, text="Remote Folder on USB:", style="Field.TLabel", anchor="center").pack(pady=(0,5), fill="x")
         remote_var = tk.StringVar(value=config.get("REMOTE_FOLDER",""))
-        remote_label = ttk.Label(frame, text=remote_var.get(), style="Path.TLabel")
-        remote_label.pack(anchor="w")
+        remote_label = ttk.Label(frame, text=remote_var.get(), style="Path.TLabel", anchor="center")
+        remote_label.pack(anchor="center", fill="x")
         def choose_remote():
             path = filedialog.askdirectory(title="Select Remote Folder on USB")
             if path:
                 remote_var.set(path)
                 remote_label.config(text=path)
-        ttk.Button(frame, text="Browse...", command=choose_remote, style="Secondary.TButton").pack(anchor="w", pady=(0,15))
+        ttk.Button(frame, text="Browse...", command=choose_remote, style="Secondary.TButton").pack(anchor="center", pady=(0,15))
 
-        ttk.Label(frame, text="Local Music Folder:", style="Field.TLabel").pack(pady=(0,5), anchor="w")
+        ttk.Label(frame, text="Local Music Folder:", style="Field.TLabel", anchor="center").pack(pady=(0,5), fill="x")
         local_var = tk.StringVar(value=config.get("LOCAL_FOLDER",""))
-        local_label = ttk.Label(frame, text=local_var.get(), style="Path.TLabel")
-        local_label.pack(anchor="w")
+        local_label = ttk.Label(frame, text=local_var.get(), style="Path.TLabel", anchor="center")
+        local_label.pack(anchor="center", fill="x")
         def choose_local():
             path = filedialog.askdirectory(title="Select Local Music Folder")
             if path:
                 local_var.set(path)
                 local_label.config(text=path)
-        ttk.Button(frame, text="Browse...", command=choose_local, style="Secondary.TButton").pack(anchor="w", pady=(0,15))
+        ttk.Button(frame, text="Browse...", command=choose_local, style="Secondary.TButton").pack(anchor="center", pady=(0,15))
 
         def save_changes():
             config["USB_DRIVE"] = drive_var.get()
@@ -335,7 +373,7 @@ class SyncApp:
             config["LOCAL_FOLDER"] = local_var.get()
             config["EXPECTED_VOLUME_NAME"] = volume_var.get()
             save_config(config)
-            messagebox.showinfo("Saved","Settings updated successfully.", parent=setup_win)
+            show_custom_message(setup_win, "Saved", "Settings updated successfully.")
             setup_win.destroy()
 
         ttk.Button(frame, text="Save Changes", command=save_changes, style="Accent.TButton").pack(pady=18, ipadx=10, ipady=2)
@@ -355,12 +393,12 @@ class SyncApp:
 
         popup = tk.Toplevel(self.root)
         popup.title("USB Detected")
-        popup.geometry("400x170")
+        popup.geometry("450x200")
         popup.resizable(False, False)
         popup.configure(bg=DARK_BG)
         popup.grab_set()
         popup.attributes("-topmost", True)
-        center_window(popup,400,170)
+        center_window(popup,450,200)
 
         frm = ttk.Frame(popup, padding=20, style="Card.TFrame")
         frm.pack(fill="both", expand=True)
@@ -448,19 +486,17 @@ class SyncApp:
         self.synced_this_session=True
         self.sync_running=False
 
-        result = messagebox.askyesno(
-            "Sync Complete",
-            f"Music sync completed.\nCopied: {copied}\nSkipped: {skipped}\n\nWould you like to safely eject the drive now?",
-            parent=self.root
+        result = show_custom_message(
+            self.root, "Sync Complete", f"Music sync completed.\nCopied: {copied}\nSkipped: {skipped}\n\nWould you like to safely eject the drive now?", "yesno"
         )
 
         if result:
             if eject_drive_windows(USB_DRIVE.drive):
-                messagebox.showinfo("Safe to Remove","You may now safely remove the USB drive.", parent=self.root)
+                show_custom_message(self.root, "Safe to Remove", "You may now safely remove the USB drive.")
             else:
-                messagebox.showwarning("Eject Failed","Automatic eject failed. Eject manually.", parent=self.root)
+                show_custom_message(self.root, "Eject Failed", "Automatic eject failed. Eject manually.")
         else:
-            messagebox.showinfo("Remember","Remember to safely eject your USB drive before removing it.", parent=self.root)
+            show_custom_message(self.root, "Remember", "Remember to safely eject your USB drive before removing it.")
 
     def tray_run(self): self.tray_icon.run()
     def exit_app(self,icon=None,item=None):
@@ -483,7 +519,7 @@ def main():
     EXPECTED_VOLUME_NAME = config["EXPECTED_VOLUME_NAME"]
 
     if not LOCAL_MUSIC.exists():
-        messagebox.showerror("Error",f"Local folder not found:\n{LOCAL_MUSIC}", parent=root)
+        show_custom_message(root, "Error", f"Local folder not found:\n{LOCAL_MUSIC}")
         sys.exit(1)
 
     app = SyncApp(root)
